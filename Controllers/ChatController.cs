@@ -19,13 +19,33 @@ public class ChatController : Controller
         return View();
     }
 
-    [HttpPost]
+    [HttpPost("/api/chat/send")]
     public async Task<IActionResult> SendMessage([FromBody] ChatMessageRequest request)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.Message))
-            return BadRequest(new { reply = "Message cannot be empty." });
+        try
+        {
+            Console.WriteLine("===== API /api/chat/send was called =====");
 
-        var reply = await _aiService.GetReplyAsync(request.Message);
-        return Json(new { reply });
+            if (request == null)
+            {
+                return Ok(new { reply = "Backend Error: Request body is null." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Message))
+            {
+                return Ok(new { reply = "Backend Error: Message is empty." });
+            }
+
+            var reply = await _aiService.GetReplyAsync(request.Message);
+
+            return Ok(new { reply });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                reply = "Backend Exception: " + ex.Message
+            });
+        }
     }
 }

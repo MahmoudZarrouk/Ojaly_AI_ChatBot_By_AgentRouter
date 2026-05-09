@@ -7,9 +7,11 @@ builder.Services.AddHttpClient<IAiService, AiService>();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

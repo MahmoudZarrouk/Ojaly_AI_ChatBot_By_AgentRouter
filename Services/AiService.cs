@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -17,36 +17,39 @@ public class AiService : IAiService
 
     public async Task<string> GetReplyAsync(string userMessage)
     {
-        var apiKey = _configuration["AgentRouter:ApiKey"];
-        var baseUrl = _configuration["AgentRouter:BaseUrl"];
-        var model = _configuration["AgentRouter:Model"];
-
-        if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "sk-BkAv7LIIeGEufDEWlKhMdTdSDliRz4LBjZlC5c0zIyaEo2oL")
-            return "Please add your AgentRouter API key in appsettings.json first.";
+        var apiKey = _configuration["Groq:ApiKey"];
+        var baseUrl = _configuration["Groq:BaseUrl"];
+        var model = _configuration["Groq:Model"];
 
         var requestBody = new
         {
             model = model,
-            messages = new[] { new { role = "user", content = userMessage } }
+            messages = new[]
+            {
+                new { role = "user", content = userMessage }
+            }
         };
 
         var json = JsonSerializer.Serialize(requestBody);
+
         using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
         using var response = await _httpClient.SendAsync(request);
-        var responseText = await response.Content.ReadAsStringAsync();
+        var responseString = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            return $"Sorry, I couldn't get a response right now. API Error: {response.StatusCode}";
+        {
+            return $"API Error: {response.StatusCode} - URL Used: {baseUrl} - Response: {responseString}";
+        }
 
-        using var document = JsonDocument.Parse(responseText);
+        using var doc = JsonDocument.Parse(responseString);
 
-        return document.RootElement
+        return doc.RootElement
             .GetProperty("choices")[0]
             .GetProperty("message")
             .GetProperty("content")
-            .GetString() ?? "Sorry, I couldn't understand the response.";
+            .GetString() ?? "No response received.";
     }
 }
