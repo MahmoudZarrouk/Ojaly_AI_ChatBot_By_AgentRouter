@@ -1,5 +1,4 @@
 # Ojaly Chat Bot
-v
 
 Ojaly Chat Bot is a simple AI-powered chatbot application built with ASP.NET Core MVC and integrated with an external AI API provider.
 
